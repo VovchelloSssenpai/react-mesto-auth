@@ -1,6 +1,7 @@
 import './index.css';
 import Header from './Header.js'
 import Main from './Main.js'
+import Login from './Login.js';
 import Footer from './Footer.js'
 import PopupWithForm from './PopupWithForm.js';
 import ImagePopup from './ImagePopup';
@@ -11,6 +12,8 @@ import { CardContext } from '../contexts/CardContext.js';
 import EditProfilePopup from './EditProfilePopup.js';
 import EditAvatarPopup from './EditAvatarPopup.js';
 import AddPlacePopup from './AddPlacePopup.js';
+import {Routes, Route} from 'react-router-dom'
+
 
 function App() {
 
@@ -108,17 +111,25 @@ const closeAllPopups = function(){
       <CurrentUserContext.Provider value={currentUser} >
       <CardContext.Provider value={card}>
       <Header />
-      <Main onEditAvatar={handleAvatarEditClick} 
-            onEditProfile={handleProfileEditClick} 
-            onAddPlace={handleCardAddClick} 
-            onCardClick={handleCardClick} 
-            onCardLike={handleCardLike} 
-            onDeleteClick={handleCardDelete}  />
-      <Footer />
+      <Routes>
+        <Route index element={
+          <Main onEditAvatar={handleAvatarEditClick} 
+          onEditProfile={handleProfileEditClick} 
+          onAddPlace={handleCardAddClick} 
+          onCardClick={handleCardClick} 
+          onCardLike={handleCardLike} 
+          onDeleteClick={handleCardDelete}  />
+        }>
+        </Route>
+        <Route index element={<Footer />}></Route>
+        <Route path='/sign-up' element={<h1>not found</h1>} ></Route>
+        <Route path='/sign-in' element={<Login></Login>} ></Route>
+      </Routes>
+      
+     
       <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} /> 
       <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
       <AddPlacePopup isOpen={isAddCardPopupOpen} onClose={closeAllPopups} onAddCard={handleAddingNewCard} />
-
       <PopupWithForm title="Вы уверены?" text="Удалить" name="delete" onClose={closeAllPopups}>
       </PopupWithForm>
       <ImagePopup card={selectedCard} onClose={closeAllPopups} isOpen={isImagePopupOpen} ></ImagePopup>
