@@ -20,15 +20,15 @@ function AddPlacePopup({onAddCard, isOpen, onClose}){
 
     return(  
         <PopupWithForm title="Новое Место" text="Создать" name="add" isOpen={isOpen} onClose={onClose} onSubmit={handleSubmit} >
-        <label className="popup__label">
-          <input onChange={handleName} type="text" className="popup__input popup__input_el_picture" name="name"
+        <label className="form__label">
+          <input onChange={handleName} type="text" className="form__input form__input_el_picture" name="name"
               placeholder="Название" required="required" id="picture-input" minLength="2" maxLength="30"/>
-          <span className="popup__input-error picture-input-error"></span>
+          <span className="form__input-error picture-input-error"></span>
       </label>
-      <label className="popup__label">
-          <input onChange={handleLink} type="url" className="popup__input popup__input_el_link" name="link"
+      <label className="form__label">
+          <input onChange={handleLink} type="url" className="form__input form__input_el_link" name="link"
               placeholder="Ссылка на картинку" required="required" id="link-input"/>
-          <span className="popup__input-error link-input-error"></span>
+          <span className="form__input-error link-input-error"></span>
       </label>
         </PopupWithForm>
         )

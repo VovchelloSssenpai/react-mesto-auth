@@ -86,6 +86,30 @@ _checkResponse(res){
   if(isLiked){return this.placeLike(cardId)} else{ return this.removeLike(cardId)}
  }
 
+register(data){
+  return fetch(`${this.Url}/signup`, {
+    method: "POST",
+    headers: this.headers,
+    body: JSON.stringify(data)
+  }).then(this._checkResponse);
+ 
+}
+
+authorize(data){
+  return fetch(`${this.Url}/signin`, {
+    method: "POST",
+    headers: this.headers,
+    body: JSON.stringify(data)
+  }).then(this._checkResponse);
+}
+
+authorizationCheck(data){
+  return fetch(`${this.Url}/users/me`, {
+    method: "GET",
+    headers: {"Content-Type": "application/json",
+              "Authorization" : `Bearer ${data}`}
+  }).then(this._checkResponse);
+}
 }
 
 const api = new Api({ baseUrl: "https://mesto.nomoreparties.co/v1/cohort-62",
@@ -95,4 +119,8 @@ headers: {
 },});
 
 
-export default api;
+const authApi = new Api({baseUrl: "https://auth.nomoreparties.co", 
+headers: {
+  "Content-Type": "application/json" }})
+
+export  {api, authApi};

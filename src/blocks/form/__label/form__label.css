@@ -1,4 +1,4 @@
-.popup__label {
+.form__label {
   position: relative;
   max-width: 358px;
   width: 100%;
@@ -6,7 +6,7 @@
 }
 
 @media (max-width: 641px) {
-  .popup__label {
+  .form__label {
     margin-bottom: 60;
   }
 }

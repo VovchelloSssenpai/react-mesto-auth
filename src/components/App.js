@@ -2,20 +2,25 @@ import './index.css';
 import Header from './Header.js'
 import Main from './Main.js'
 import Login from './Login.js';
+import Register from './Register.js'
 import Footer from './Footer.js'
 import PopupWithForm from './PopupWithForm.js';
 import ImagePopup from './ImagePopup';
 import { useState, useEffect } from 'react';
-import api from '../utils/Api'
+import {api, authApi} from '../utils/Api'
 import {CurrentUserContext} from '../contexts/CurrentUserContext'
 import { CardContext } from '../contexts/CardContext.js';
 import EditProfilePopup from './EditProfilePopup.js';
 import EditAvatarPopup from './EditAvatarPopup.js';
 import AddPlacePopup from './AddPlacePopup.js';
-import {Routes, Route} from 'react-router-dom'
+import {Routes, Route, Navigate, useNavigate} from 'react-router-dom'
+import {ProtectedRouteElement} from './ProtectedRoute'
+import InfoTooltip from './InfoTooltip'
 
 
 function App() {
+const navigate = useNavigate()
+
 
   // GETTING PROFILE DATA
   const [currentUser, setCurrentUser] = useState({});
@@ -74,12 +79,39 @@ function handleAddingNewCard(cardData){
 }
 
 
+// LOGGED IN STATE
+const [loggedIn, setLoggedIn] = useState(false);
+const [profileData, setProfileData] = useState("")
+const [authorizatioStatus, setAuthorizationStatus] = useState(false);
+// Registration authorization
+
+function handleRegistration(data){
+ return authApi.register(data).then(data=>  {handleInfoTooltipPopupOpen(); setAuthorizationStatus(true) } ).catch(error => {console.error(error); handleInfoTooltipPopupOpen(); setAuthorizationStatus(false)})
+}
+function handleAuthorization(data){
+  return authApi.authorize(data).then((res)=> {if (res.token){localStorage.setItem('token', res.token)} return res}).catch(error => {handleInfoTooltipPopupOpen(); setAuthorizationStatus(false)})
+}
+
+// TOKEN CHECK
+const tokenCheck = () => {
+  const token = localStorage.getItem('token');
+  if (token){
+    authApi.authorizationCheck(token).then((res)=>{
+        setProfileData(res.data.email)
+setLoggedIn(true);
+navigate("/", {replace: true})
+})}} 
+
+useEffect(() => {
+  tokenCheck();
+  }, [])
+
 const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
 const [isAddCardPopupOpen, setIsAddCardPopupOpen] = useState(false);
 const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
 const [selectedCard, setSelectedCard] = useState({});
 const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
-
+const [isInfoTooltipOpen, setInfoTooltip] = useState(false);
 
 function handleAvatarEditClick(){
   setIsEditAvatarPopupOpen(true);  
@@ -95,12 +127,20 @@ function handleCardClick(card){
   setIsImagePopupOpen(true);
 }
 
+function handleInfoTooltipPopupOpen(){
+  setInfoTooltip(true);
+}
+
+function handleLogIn(){
+  setLoggedIn(true)
+}
 
 const closeAllPopups = function(){
   setIsEditAvatarPopupOpen(false);  
   setIsEditProfilePopupOpen(false)
   setIsAddCardPopupOpen(false)
   setIsImagePopupOpen(false)
+  setInfoTooltip(false);
 }
 
 
@@ -110,29 +150,33 @@ const closeAllPopups = function(){
       <div className='page'>
       <CurrentUserContext.Provider value={currentUser} >
       <CardContext.Provider value={card}>
-      <Header />
+      <Header loginStatus={loggedIn} setLoginStatus={setLoggedIn} profileData={profileData} setProfileData={setProfileData} />
       <Routes>
-        <Route index element={
-          <Main onEditAvatar={handleAvatarEditClick} 
-          onEditProfile={handleProfileEditClick} 
-          onAddPlace={handleCardAddClick} 
-          onCardClick={handleCardClick} 
-          onCardLike={handleCardLike} 
-          onDeleteClick={handleCardDelete}  />
+        <Route path='/' element={ loggedIn ?  <ProtectedRouteElement loggedIn={loggedIn} element={  
+        Main  
+        }
+        onEditAvatar={handleAvatarEditClick} 
+        onEditProfile={handleProfileEditClick} 
+        onAddPlace={handleCardAddClick} 
+        onCardClick={handleCardClick} 
+        onCardLike={handleCardLike} 
+        onDeleteClick={handleCardDelete}  
+        />
+      :
+  <Navigate to="/sign-in" replace />
         }>
         </Route>
-        <Route index element={<Footer />}></Route>
-        <Route path='/sign-up' element={<h1>not found</h1>} ></Route>
-        <Route path='/sign-in' element={<Login></Login>} ></Route>
+        <Route path='/sign-up' element={<Register onRegister={handleRegistration} />} ></Route>
+        <Route path='/sign-in' element={<Login onAuthorize={handleAuthorization} handleLogin={handleLogIn} setProfileData={setProfileData} />} ></Route>
       </Routes>
-      
+    { loggedIn && <Footer />}
      
       <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} /> 
       <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
       <AddPlacePopup isOpen={isAddCardPopupOpen} onClose={closeAllPopups} onAddCard={handleAddingNewCard} />
-      <PopupWithForm title="Вы уверены?" text="Удалить" name="delete" onClose={closeAllPopups}>
-      </PopupWithForm>
-      <ImagePopup card={selectedCard} onClose={closeAllPopups} isOpen={isImagePopupOpen} ></ImagePopup>
+      <PopupWithForm title="Вы уверены?" text="Удалить" name="delete" onClose={closeAllPopups}/>
+      <ImagePopup card={selectedCard} onClose={closeAllPopups} isOpen={isImagePopupOpen} />
+      <InfoTooltip onClose={closeAllPopups} isOpen={isInfoTooltipOpen} authorizationStatus={authorizatioStatus} />
       </CardContext.Provider>
       </CurrentUserContext.Provider>
       </div>
