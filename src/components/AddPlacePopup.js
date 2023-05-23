@@ -23,7 +23,12 @@ function AddPlacePopup({onAddCard, isOpen, onClose, isLoading}){
     }
 
     return(  
-        <PopupWithForm title="Новое Место" text={isLoading ? "Создание..." : "Создать"} name="add" isOpen={isOpen} onClose={onClose} onSubmit={handleSubmit} >
+        <PopupWithForm title="Новое Место" 
+                      text={isLoading ? "Создание..." : "Создать"} 
+                      name="add" 
+                      isOpen={isOpen} 
+                      onClose={onClose} 
+                      onSubmit={handleSubmit} >
         <label className="form__label">
           <input value={name} onChange={handleName} type="text" className="form__input form__input_el_picture" name="name"
               placeholder="Название" required="required" id="picture-input" minLength="2" maxLength="30"/>

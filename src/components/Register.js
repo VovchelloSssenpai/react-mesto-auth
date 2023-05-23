@@ -23,7 +23,10 @@ const handleSubmit = (e) => {
     return (
         <div className="signpage">
             <h2 className="signpage__header">Регистрация</h2>
-            <AuthorizationFrom handleChange={handleChange} handleSubmit={handleSubmit} formValue={formValue} button={isLoading ? "Регистрация..." : "Зарегистрироваться"} >
+            <AuthorizationFrom handleChange={handleChange} 
+                                handleSubmit={handleSubmit} 
+                                formValue={formValue} 
+                                button={isLoading ? "Регистрация..." : "Зарегистрироваться"} >
             <p className="signpage__question">Уже зарегистрированы? <Link to={'/sign-in'} className="signpage__link">Войти</Link> </p>
             </AuthorizationFrom>
         </div>
