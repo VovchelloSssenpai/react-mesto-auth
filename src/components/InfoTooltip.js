@@ -2,7 +2,7 @@ import acceptance from "../images/acceptance.svg"
 import rejection from "../images/error.svg"
 
 
-function InfoTooltip({isOpen, onClose, message, authorizationStatus}) {
+function InfoTooltip({isOpen, onClose, authorizationStatus}) {
     const className = `popup popup-infoTooltip ${isOpen ? "popup_opened" : ""}`
 
     return (

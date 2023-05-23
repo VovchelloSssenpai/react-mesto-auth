@@ -1,9 +1,9 @@
 import {Link} from "react-router-dom"
 import { useState } from "react";
+import AuthorizationFrom from "./AuthorizationForm";
 
 
-
-function Register(props) {
+function Register({onRegister, isLoading}) {
 
 const [formValue, setFormValue] = useState({
     password: '',
@@ -17,27 +17,15 @@ const handleChange = (e) => {
 
 const handleSubmit = (e) => {
     e.preventDefault();
-    props.onRegister(formValue)
+    onRegister(formValue)
 }
 
     return (
         <div className="signpage">
             <h2 className="signpage__header">Регистрация</h2>
-            <form action="submit" className="form" noValidate onSubmit={handleSubmit} >
-            <label className="form__label">
-        <input type="text" className="form__input form__input_el_email form__input-dark" name="email" placeholder="Email"
-            required="required" minLength="2" maxLength="40" id="email-input" value={formValue.email || ''} onChange={handleChange} />
-        <span className="form__input-error email-input-error"></span>
-      </label>
-      <label className="form__label">
-        <input   type="password" className="form__input form__input_el_password form__input-dark" name="password"
-            placeholder="Пароль" required="required" minLength="2" maxLength="200"
-            id="password-input" value={formValue.password || ''} onChange={handleChange} />
-        <span className="form__input-error password-input-error"></span>
-      </label>
-                <button type="submit" className="form__submit-button form__submit-button-dark"  >Зарегистрироваться</button>
-                <p className="signpage__question">Уже зарегистрированы? <Link to={'/sign-in'} className="signpage__link">Войти</Link> </p>
-            </form>  
+            <AuthorizationFrom handleChange={handleChange} handleSubmit={handleSubmit} formValue={formValue} button={isLoading ? "Регистрация..." : "Зарегистрироваться"} >
+            <p className="signpage__question">Уже зарегистрированы? <Link to={'/sign-in'} className="signpage__link">Войти</Link> </p>
+            </AuthorizationFrom>
         </div>
     );
   }

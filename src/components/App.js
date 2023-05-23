@@ -1,4 +1,4 @@
-import './index.css';
+import '../index.css';
 import Header from './Header.js'
 import Main from './Main.js'
 import Login from './Login.js';
@@ -19,30 +19,76 @@ import InfoTooltip from './InfoTooltip'
 
 
 function App() {
+
 const navigate = useNavigate()
 
+// STATES
+const [currentUser, setCurrentUser] = useState({});
+const [card, setCard] = useState([])
+const [loggedIn, setLoggedIn] = useState(false);
+const [profileData, setProfileData] = useState("")
+const [authorizatioStatus, setAuthorizationStatus] = useState(false);
+const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
+const [isAddCardPopupOpen, setIsAddCardPopupOpen] = useState(false);
+const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
+const [selectedCard, setSelectedCard] = useState({});
+const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
+const [isInfoTooltipOpen, setInfoTooltip] = useState(false);
+const [authorizationFormValue, setFormValue] = useState({
+  password: '',
+  email: ''
+})
+const [isLoading, setIsLoading] = useState(false);
+
+function handleAvatarEditClick(){
+  setIsEditAvatarPopupOpen(true);  
+}
+function handleProfileEditClick(){
+  setIsEditProfilePopupOpen(true)
+}
+function handleCardAddClick(){
+  setIsAddCardPopupOpen(true)
+}
+function handleCardClick(card){
+  setSelectedCard(card)
+  setIsImagePopupOpen(true);
+}
+function handleInfoTooltipPopupOpen(){
+  setInfoTooltip(true);
+}
+function handleLogIn(){
+  setLoggedIn(true)
+}
+
+const closeAllPopups = function(){
+  setIsEditAvatarPopupOpen(false);  
+  setIsEditProfilePopupOpen(false)
+  setIsAddCardPopupOpen(false)
+  setIsImagePopupOpen(false)
+  setInfoTooltip(false);
+}
 
   // GETTING PROFILE DATA
-  const [currentUser, setCurrentUser] = useState({});
+  
+    useEffect(() => {
+      loggedIn &&  api.getInitialProfileData()
+        .then(data => {
+          setCurrentUser(data);    
+        })
+        .catch(error => console.error(error));
+    }, [loggedIn]);
+  
+  
+  // GETTING INITIAL IMAGES DATA
+  
+  useEffect(()=>{
+    loggedIn &&  api.getInitialImages().then(data => {
+          setCard(data);
+      }).catch(error => console.error(error));
+  }, [loggedIn])
 
-  useEffect(() => {
-    api.getInitialProfileData()
-      .then(data => {
-        setCurrentUser(data);    
-      })
-      .catch(error => console.error(error));
-  }, []);
+ 
 
-
-// GETTING INITIAL IMAGES DATA
-
-const [card, setCard] = useState([])
-
-useEffect(()=>{
-    api.getInitialImages().then(data => {
-        setCard(data);
-    }).catch(error => console.error(error));
-}, [])
 
 // LIKE FUNCTION
 
@@ -63,37 +109,43 @@ function handleCardDelete(card){
 
 // UPDATE USER
 function handleUpdateUser(userInfo){
+  setIsLoading(true);
 api.setUserInfo(userInfo).then((updated)=>{
   setCurrentUser(updated); closeAllPopups();
-}).catch(error => console.error(error))
+}).catch(error => console.error(error)).finally(res=>setIsLoading(false))
 }
 
 // UPDATE AVATAR
 function handleUpdateAvatar(avatarLink){
-  api.updateAvatar(avatarLink).then((updated)=>{setCurrentUser(updated); closeAllPopups()}).catch(error => console.error(error))
+  setIsLoading(true);
+  api.updateAvatar(avatarLink).then((updated)=>{setCurrentUser(updated); closeAllPopups()}).catch(error => console.error(error)).finally(res => setIsLoading(false))
 }
 
 // NEW IMAGE STATE
 function handleAddingNewCard(cardData){
-  api.addNewImage(cardData).then((updated)=>{setCard([updated, ...card]); closeAllPopups()})
+  setIsLoading(true);
+  api.addNewImage(cardData).then((updated)=>{setCard([updated, ...card]); closeAllPopups()}).finally(res =>setIsLoading(false))
 }
 
-
-// LOGGED IN STATE
-const [loggedIn, setLoggedIn] = useState(false);
-const [profileData, setProfileData] = useState("")
-const [authorizatioStatus, setAuthorizationStatus] = useState(false);
 // Registration authorization
 
 function handleRegistration(data){
- return authApi.register(data).then(data=>  {handleInfoTooltipPopupOpen(); setAuthorizationStatus(true) } ).catch(error => {console.error(error); handleInfoTooltipPopupOpen(); setAuthorizationStatus(false)})
+  setIsLoading(true);
+ return authApi.register(data).then(data=>  {handleInfoTooltipPopupOpen(); setAuthorizationStatus(true) } )
+                              .catch(error => {console.error(error); handleInfoTooltipPopupOpen(); setAuthorizationStatus(false)})
+                              .finally((res)=>{setIsLoading(false)})
 }
 function handleAuthorization(data){
-  return authApi.authorize(data).then((res)=> {if (res.token){localStorage.setItem('token', res.token)} return res}).catch(error => {handleInfoTooltipPopupOpen(); setAuthorizationStatus(false)})
+  setIsLoading(true);
+  return authApi.authorize(data).then((res)=> {if (res.token){localStorage.setItem('token', res.token); setFormValue({
+    password: '',
+    email: ''
+})}  handleLogIn(); navigate("/", {replace: true});  return res}).catch(error => {handleInfoTooltipPopupOpen(); setAuthorizationStatus(false)})
+.then((res)=> {setIsLoading(false)})
 }
 
 // TOKEN CHECK
-const tokenCheck = () => {
+const handleTokenCheck = () => {
   const token = localStorage.getItem('token');
   if (token){
     authApi.authorizationCheck(token).then((res)=>{
@@ -103,45 +155,9 @@ navigate("/", {replace: true})
 })}} 
 
 useEffect(() => {
-  tokenCheck();
+  handleTokenCheck();
   }, [])
 
-const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
-const [isAddCardPopupOpen, setIsAddCardPopupOpen] = useState(false);
-const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
-const [selectedCard, setSelectedCard] = useState({});
-const [isImagePopupOpen, setIsImagePopupOpen] = useState(false);
-const [isInfoTooltipOpen, setInfoTooltip] = useState(false);
-
-function handleAvatarEditClick(){
-  setIsEditAvatarPopupOpen(true);  
-}
-function handleProfileEditClick(){
-  setIsEditProfilePopupOpen(true)
-}
-function handleCardAddClick(){
-  setIsAddCardPopupOpen(true)
-}
-function handleCardClick(card){
-  setSelectedCard(card)
-  setIsImagePopupOpen(true);
-}
-
-function handleInfoTooltipPopupOpen(){
-  setInfoTooltip(true);
-}
-
-function handleLogIn(){
-  setLoggedIn(true)
-}
-
-const closeAllPopups = function(){
-  setIsEditAvatarPopupOpen(false);  
-  setIsEditProfilePopupOpen(false)
-  setIsAddCardPopupOpen(false)
-  setIsImagePopupOpen(false)
-  setInfoTooltip(false);
-}
 
 
   return (
@@ -150,7 +166,7 @@ const closeAllPopups = function(){
       <div className='page'>
       <CurrentUserContext.Provider value={currentUser} >
       <CardContext.Provider value={card}>
-      <Header loginStatus={loggedIn} setLoginStatus={setLoggedIn} profileData={profileData} setProfileData={setProfileData} />
+      <Header loginStatus={loggedIn} setLoginStatus={setLoggedIn} profileData={profileData} setProfileData={setProfileData}  />
       <Routes>
         <Route path='/' element={ loggedIn ?  <ProtectedRouteElement loggedIn={loggedIn} element={  
         Main  
@@ -166,14 +182,19 @@ const closeAllPopups = function(){
   <Navigate to="/sign-in" replace />
         }>
         </Route>
-        <Route path='/sign-up' element={<Register onRegister={handleRegistration} />} ></Route>
-        <Route path='/sign-in' element={<Login onAuthorize={handleAuthorization} handleLogin={handleLogIn} setProfileData={setProfileData} />} ></Route>
+        <Route path='/sign-up' element={<Register onRegister={handleRegistration} isLoading={isLoading} />} ></Route>
+        <Route path='/sign-in' element={<Login onAuthorize={handleAuthorization}  
+                                              setProfileData={setProfileData} 
+                                              setFormValue={setFormValue} 
+                                              formValue={authorizationFormValue}
+                                              isLoading={isLoading}   />} >
+        </Route>
       </Routes>
     { loggedIn && <Footer />}
      
-      <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} /> 
-      <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
-      <AddPlacePopup isOpen={isAddCardPopupOpen} onClose={closeAllPopups} onAddCard={handleAddingNewCard} />
+      <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} isLoading={isLoading} /> 
+      <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} isLoading={isLoading} />
+      <AddPlacePopup isOpen={isAddCardPopupOpen} onClose={closeAllPopups} onAddCard={handleAddingNewCard} isLoading={isLoading} />
       <PopupWithForm title="Вы уверены?" text="Удалить" name="delete" onClose={closeAllPopups}/>
       <ImagePopup card={selectedCard} onClose={closeAllPopups} isOpen={isImagePopupOpen} />
       <InfoTooltip onClose={closeAllPopups} isOpen={isInfoTooltipOpen} authorizationStatus={authorizatioStatus} />
